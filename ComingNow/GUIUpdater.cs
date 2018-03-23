@@ -52,6 +52,23 @@ namespace ComingNow
             tootPanel.Entity_username.Text = "@" + toot.Entity_account.Entity_username;
             tootPanel.Entity_display_name.Text = toot.Entity_account.Entity_display_name;
             ContentToTextBlock(toot.Entity_content, tootPanel.Entity_content.Inlines);
+            
+            if (toot.Entity_media_attachments != null)
+            {
+                foreach (Attachment atch in toot.Entity_media_attachments)
+                {
+                    var link = new Hyperlink()
+                    {
+                        NavigateUri = new Uri(atch.Entity_url)
+                    };
+                    link.RequestNavigate += new System.Windows.Navigation.RequestNavigateEventHandler((obj, e) =>
+                    {
+                        System.Diagnostics.Process.Start(e.Uri.AbsoluteUri);
+                    });
+                    link.Inlines.Add(atch.Entity_text_url);
+                    tootPanel.Entity_content.Inlines.Add(link);
+                }
+            }
 
             //タイムラインの更新と辞書への追加、ここまでは同期的に即座に実行
             timelinePanel.Children.Insert(0, tootPanel);           
@@ -96,18 +113,25 @@ namespace ComingNow
                 inlines.Add(reg_br.Replace(m.Groups[1].Value, "\n"));
                 XElement xlink = XDocument.Parse(m.Groups[2].Value).Element("a");
                 string uri = xlink.Attribute("href").Value;
-                var spans = xlink.Elements("span");
 
-                string text = (spans.Count() == 0) ? xlink.Value : "";
-                foreach (XElement span in spans)
+                string text = "";
+
+                if (xlink.Attribute("rel").Value == "tag")
                 {
-                    bool b = true;
-                    foreach(XAttribute att in span.Attributes())
+                    text = xlink.Value;
+                }
+                else
+                {
+                    foreach (XElement span in xlink.Elements("span"))
                     {
-                        b = !(att.Name == "class" && att.Value == "invisible");
+                        bool b = true;
+                        foreach (XAttribute att in span.Attributes())
+                        {
+                            b = !(att.Name == "class" && att.Value == "invisible");
+                        }
+                        if (b)
+                            text += span.Value;
                     }
-                    if(b)
-                        text += span.Value;
                 }
 
                 var link = new Hyperlink()

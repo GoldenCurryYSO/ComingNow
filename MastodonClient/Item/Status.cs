@@ -16,6 +16,8 @@ namespace MastodonClient.Item
         public string Entity_content { get; set; }
         [JsonProperty("account")]
         public Account Entity_account { get; set; }
+        [JsonProperty("media_attachments")]
+        public List<Attachment> Entity_media_attachments { get; set; }
 
         public Status()
         {

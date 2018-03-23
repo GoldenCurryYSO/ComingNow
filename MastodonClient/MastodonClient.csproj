@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="Client.cs" />
     <Compile Include="ConsoleUpdater.cs" />
+    <Compile Include="Item\Attachment.cs" />
     <Compile Include="Item\Account.cs" />
     <Compile Include="Item\Status.cs" />
     <Compile Include="IUpdater.cs" />
