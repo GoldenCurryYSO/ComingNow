@@ -1,0 +1,9 @@
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\MastodonClient\bin\Release\MastodonClient.exe.config
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\MastodonClient\bin\Release\MastodonClient.exe
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\MastodonClient\bin\Release\MastodonClient.pdb
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\MastodonClient\bin\Release\Newtonsoft.Json.dll
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\MastodonClient\bin\Release\Newtonsoft.Json.xml
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\MastodonClient\obj\Release\MastodonClient.csprojResolveAssemblyReference.cache
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\MastodonClient\obj\Release\MastodonClient.csproj.CoreCompileInputs.cache
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\MastodonClient\obj\Release\MastodonClient.exe
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\MastodonClient\obj\Release\MastodonClient.pdb
