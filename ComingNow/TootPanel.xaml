@@ -18,9 +18,13 @@
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <Image Name="Avatar" Grid.Column="0" Width="40" Height="40" Margin="10">
-
-            </Image>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Image Name="Avatar" Width="40" Height="40" Margin="10"></Image>
+            </Grid>
             <StackPanel Grid.Column="1" Margin="0,5,0,5">
                 <TextBlock>
                     <Run Name="Entity_display_name"/>
@@ -28,6 +32,7 @@
                 </TextBlock>
                 <TextBlock Name="Entity_content" TextWrapping="Wrap">
                 </TextBlock>
+                <local:Media x:Name="MediaPanel"/>
             </StackPanel>
         </Grid>
     </Border>

@@ -21,3 +21,5 @@ C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\bin\Debug\MastodonClien
 C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\bin\Debug\MastodonClient.exe.config
 C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\bin\Debug\Newtonsoft.Json.dll
 C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\bin\Debug\Newtonsoft.Json.xml
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\obj\Debug\Media.g.cs
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\obj\Debug\Media.baml

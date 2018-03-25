@@ -53,20 +53,14 @@ namespace ComingNow
             tootPanel.Entity_display_name.Text = toot.Entity_account.Entity_display_name;
             ContentToTextBlock(toot.Entity_content, tootPanel.Entity_content.Inlines);
             
+            //メディアを反映
             if (toot.Entity_media_attachments != null)
             {
                 foreach (Attachment atch in toot.Entity_media_attachments)
                 {
-                    var link = new Hyperlink()
-                    {
-                        NavigateUri = new Uri(atch.Entity_url)
-                    };
-                    link.RequestNavigate += new System.Windows.Navigation.RequestNavigateEventHandler((obj, e) =>
-                    {
-                        System.Diagnostics.Process.Start(e.Uri.AbsoluteUri);
-                    });
-                    link.Inlines.Add(atch.Entity_text_url);
-                    tootPanel.Entity_content.Inlines.Add(link);
+                    var bitmap = await GetBitmapImage(atch.Entity_preview_url);
+                   
+                    tootPanel.MediaPanel.AddMedia(bitmap);
                 }
             }
 
@@ -161,20 +155,26 @@ namespace ComingNow
                 avatarTable.Add(account.Entity_id, null);
 
                 var bytes = await client.GetByteArrayAsync(account.Entity_avatar).ConfigureAwait(false);
-                using (var stream = new MemoryStream(bytes))
-                {
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.StreamSource = stream;
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.EndInit();
-                    bitmap.Freeze();
+                var bitmap = await GetBitmapImage(account.Entity_avatar);
+                avatarTable[account.Entity_id] = bitmap;
 
-                    //var transform = new TransformedBitmap(bitmap, new ScaleTransform(avatarSize / bitmap.DpiX, avatarSize / bitmap.DpiY));
-                    
-                    avatarTable[account.Entity_id] = bitmap;
-                    return bitmap;
-                }
+                return bitmap;
+            }
+        }
+
+        private async Task<BitmapImage> GetBitmapImage(string url)
+        {
+            var bytes = await client.GetByteArrayAsync(url).ConfigureAwait(false);
+            using (var stream = new MemoryStream(bytes))
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.StreamSource = stream;
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.EndInit();
+                bitmap.Freeze();
+
+                return bitmap;
             }
         }
     }
