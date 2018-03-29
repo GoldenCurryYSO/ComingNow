@@ -13,7 +13,7 @@ namespace MastodonClient
     {
         static void Main(string[] args)
         {
-            Client client = new Client(new ConsoleUpdater());
+            Client client = new Client("imastodon.net", new ConsoleUpdater());
             while (true)
             {
                 string str = Console.ReadLine();

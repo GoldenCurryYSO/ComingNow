@@ -23,3 +23,9 @@ C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\bin\Debug\Newtonsoft.Js
 C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\bin\Debug\Newtonsoft.Json.xml
 C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\obj\Debug\Media.g.cs
 C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\obj\Debug\Media.baml
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\obj\Debug\MediaWindow.g.cs
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\obj\Debug\MediaWindow.baml
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\obj\Debug\Column.g.cs
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\obj\Debug\Column.baml
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\obj\Debug\AuthorizationWindow.g.cs
+C:\Users\atuos\OneDrive\VisualStudio\ComingNow\ComingNow\obj\Debug\AuthorizationWindow.baml

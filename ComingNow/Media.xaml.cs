@@ -48,7 +48,17 @@ namespace ComingNow
                     (int)(bitmap.PixelHeight / propotion), bitmap.PixelHeight
                     );
             }
-            var cropped = new CroppedBitmap(bitmap, rect);
+
+            CroppedBitmap cropped = null;
+            try
+            {
+                cropped = new CroppedBitmap(bitmap, rect);
+            }
+            catch(ArgumentException e)
+            {
+                Console.Error.WriteLine("{0}, {1}", bitmap.PixelWidth, bitmap.PixelHeight);
+                Console.Error.WriteLine(rect);
+            }
 
             int count = this.MediaPanel.Children.Count;
             int column = count % 2;
@@ -58,6 +68,17 @@ namespace ComingNow
             imageControl.Source = cropped;
             Grid.SetColumn(imageControl, column);
             Grid.SetRow(imageControl, row);
+
+            imageControl.MouseDown += (sender, e) =>
+            {
+                var mediaWindow = new MediaWindow();
+                mediaWindow.MediaPanel.Children.Add(
+                    new ZoomableImage()
+                    {
+                        Source = bitmap
+                    });
+                mediaWindow.Show();
+            };
             
             this.MediaPanel.Children.Add(imageControl);
         }

@@ -30,8 +30,8 @@
                     <Run Name="Entity_display_name"/>
                     <Run Name="Entity_username" Foreground="Gray"/>
                 </TextBlock>
-                <TextBlock Name="Entity_content" TextWrapping="Wrap">
-                </TextBlock>
+                <TextBlock Name="Entity_spoiler_text" Background="#FF0F0F0F"></TextBlock>
+                <TextBlock Name="Entity_content" TextWrapping="Wrap"></TextBlock>
                 <local:Media x:Name="MediaPanel"/>
             </StackPanel>
         </Grid>

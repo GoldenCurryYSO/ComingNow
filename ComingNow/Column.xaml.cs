@@ -1,0 +1,43 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using MastodonClient;
+
+namespace ComingNow
+{
+    /// <summary>
+    /// Column.xaml の相互作用ロジック
+    /// </summary>
+    public partial class Column : UserControl
+    {
+        Client client;
+        public Column(string host)
+        {
+            InitializeComponent();
+
+            client = new Client(host, new GUIUpdater(this.Toots, App.Current.Dispatcher));
+            client.GetLocalTimeline();
+            client.StreamingLocalTimeline();
+        }
+
+        private async void TootButtonOnClicked(Object sender, RoutedEventArgs e)
+        {
+            if(this.TootTextBox.Text != "")
+            {
+                bool succeeded = await client.PostToot(this.TootTextBox.Text, new List<MastodonClient.Item.Attachment>());
+                this.TootTextBox.Text = "";
+            }
+        }
+    }
+}

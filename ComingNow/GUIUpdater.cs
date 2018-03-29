@@ -35,6 +35,8 @@ namespace ComingNow
 
         private HttpClient client = new HttpClient();
 
+        private bool concealed = false;
+
         public GUIUpdater(Panel timelinePanel, System.Windows.Threading.Dispatcher dispatcher)
         {
             this.timelinePanel = timelinePanel;
@@ -51,19 +53,25 @@ namespace ComingNow
             var tootPanel = new TootPanel();
             tootPanel.Entity_username.Text = "@" + toot.Entity_account.Entity_username;
             tootPanel.Entity_display_name.Text = toot.Entity_account.Entity_display_name;
-            ContentToTextBlock(toot.Entity_content, tootPanel.Entity_content.Inlines);
             
-            //メディアを反映
-            if (toot.Entity_media_attachments != null)
+            if(toot.Entity_spoiler_text != "")
             {
-                foreach (Attachment atch in toot.Entity_media_attachments)
+                tootPanel.Entity_spoiler_text.Text = toot.Entity_spoiler_text;
+                concealed = true;
+                tootPanel.Entity_content.MaxHeight = 0;
+                tootPanel.Entity_spoiler_text.MouseLeftButtonUp += (sender, e) =>
                 {
-                    var bitmap = await GetBitmapImage(atch.Entity_preview_url);
-                   
-                    tootPanel.MediaPanel.AddMedia(bitmap);
-                }
+                    concealed = !concealed;
+                    tootPanel.Entity_content.MaxHeight = concealed ? 0 : Double.MaxValue;
+                };
+            }
+            else
+            {
+                tootPanel.Entity_spoiler_text.MaxHeight = 0;
             }
 
+            ContentToTextBlock(toot.Entity_content, tootPanel.Entity_content.Inlines);
+            
             //タイムラインの更新と辞書への追加、ここまでは同期的に即座に実行
             timelinePanel.Children.Insert(0, tootPanel);           
             dictionary.Add(toot.Entity_id, tootPanel);
@@ -74,6 +82,24 @@ namespace ComingNow
             {
                 tootPanel.Avatar.Source = img;
             }), System.Windows.Threading.DispatcherPriority.Background);
+
+            //メディアを反映
+            if (toot.Entity_media_attachments != null)
+            {
+                var tasks = toot.Entity_media_attachments.Select(
+                    async atch => tootPanel.MediaPanel.AddMedia(
+                        await GetBitmapImage(atch.Entity_url))
+                        );
+                try
+                {
+                    await Task.WhenAll(tasks);
+
+                }
+                catch(Exception e)
+                {
+                    Console.Error.WriteLine(e);
+                }
+            }
         }
 
         public void Delete(string id)

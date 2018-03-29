@@ -21,43 +21,73 @@ namespace MastodonClient
             Timeout = TimeSpan.FromSeconds(5.0)
         };
 
-        private string server_url = "imastodon.net";
-        private string client_id = "53894874fb989236d4b3024f790abf806bba5d776cae0542b0ee5bd6a2c48388";
-        private string client_secret = "568937c77c34638b4b952af5c07a925b6c54c99c5b6ec4c50b4736577835ba21";
+        private const string info_path = "account";
 
-        private string token = "6357890c3ed50bbd0b3fdfa06744827fea9aaf9dee01f19ab7194de783e56bf0";
+        private string host;
+        private const string redirect_uri = "urn:ietf:wg:oauth:2.0:oob";
+        private const string client_id = "53894874fb989236d4b3024f790abf806bba5d776cae0542b0ee5bd6a2c48388";
+        private const string client_secret = "568937c77c34638b4b952af5c07a925b6c54c99c5b6ec4c50b4736577835ba21";
+
+        private string token;
 
         private const int BUFFER_SIZE = 4096;
 
-        public Client(IUpdater updater)
+        private bool streaming = false;
+        public bool Streaming
         {
+            get
+            {
+                return streaming;
+            }
+        }
+
+        public Client(string host, IUpdater updater)
+        {
+            this.host = host;
             this.updater = updater;
+
+            try
+            {
+                if (!File.Exists(info_path))
+                {
+                    StreamWriter writer = new StreamWriter(info_path, false);
+                }
+
+                using (StreamReader reader = new StreamReader(info_path))
+                {
+                    token = reader.ReadLine();
+                }
+            }
+            catch(Exception e)
+            {
+                Console.Error.WriteLine("Error occured while reading file 'account'.");
+                Console.Error.WriteLine(e);
+            }
         }
 
         /// <summary>
         /// 認証画面を開く
         /// </summary>
-        public void Authorization()
+        static public void Authorization(string host)
         {
-            System.Diagnostics.Process.Start("https://" + server_url + "/oauth/authorize?"
+            System.Diagnostics.Process.Start("https://" + host + "/oauth/authorize?"
                 + "response_type=" + "code"
                 + "&client_id=" + client_id
-                + "&redirect_uri=" + "urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob");
+                + "&scope=" + "read write follow"
+                + "&redirect_uri=" + redirect_uri); //"urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob");
         }
 
         /// <summary>
-        /// 認証コードをマストドンサーバーに送信し、アクセストークンを入手する
+        /// 認証コードをマストドンサーバーに送信し、アクセストークンを入手する（結果はinfo_pathのファイルに書き込む）
         /// </summary>
         /// <param name="code">認証コード（認証画面に表示）</param>
-        /// <returns>アクセストークン</returns>
-        public async Task<string> GetAccessToken(string code)
+        static public async Task<bool> GetAccessToken(string host, string code)
         {
-            string url = "https://" + server_url + "/oauth/token";
-            //string url = "http://localhost:8000";
+            string url = "https://" + host + "/oauth/token";
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 { "grant_type", "authorization_code"},
-                { "redirect_uri", "urn:ietf:wg:oauth:2.0:oob"},//"urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob"},
+                { "redirect_uri", redirect_uri},
                 { "client_id", client_id },
                 { "client_secret", client_secret},
                 { "scope", "read write follow" },
@@ -65,37 +95,48 @@ namespace MastodonClient
             });
             try
             {
-                HttpResponseMessage res = await client.PostAsync(url, content);
+                HttpResponseMessage res = await (new HttpClient()).PostAsync(url, content);
                 if(res.IsSuccessStatusCode)
                 {
                     //Console.WriteLine(res.ToString());
                     using (StreamReader reader = new StreamReader(await res.Content.ReadAsStreamAsync()))
                     {
                         string str = "";
-                        while((str = reader.ReadLine()) != null)
+                        //Regex rgx = new Regex("\"access_token\":\"<token>\"");
+                        while ((str = reader.ReadLine()) != null)
                         {
-                            Regex rgx = new Regex("\"access_token\":\"?<token>\"");
+                            try
+                            {
+                                JObject obj = JObject.Parse(str);
+                                using (StreamWriter writer = new StreamWriter(info_path, false))
+                                {
+                                    writer.Write((string)obj["access_token"]);
+                                }
+                                return true;
+                            }
+                            catch (Exception) { }
+                            /*
                             Match m = rgx.Match(str);
                             if (m.Success)
                             {
-                                code = m.Groups["token"].Value;
-                                Console.WriteLine("access_token <- {0}", code);
+                                
                             }
+                            */
                         }
                     }
-                    return await res.Content.ReadAsStringAsync();
+                    return false;
                 }
                 else
                 {
                     Console.Error.WriteLine("アクセストークンの取得に失敗しました。");
                     Console.Error.WriteLine(await res.Content.ReadAsStringAsync());
-                    return "";
+                    return false;
                 }
             }
             catch(Exception e)
             {
                 Console.Error.WriteLine(e);
-                return "";
+                return false;
             }
         }
 
@@ -104,7 +145,7 @@ namespace MastodonClient
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
-                RequestUri = new Uri(string.Format("https://{0}/api/v1/timelines/public?local=true", server_url))
+                RequestUri = new Uri(string.Format("https://{0}/api/v1/timelines/public?local=true", host))
             };
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
@@ -132,7 +173,14 @@ namespace MastodonClient
             statusList.Reverse();
             foreach(Item.Status s in statusList)
             {
-                await updater.Update(s);
+                try
+                {
+                    await updater.Update(s);
+                }
+                catch(Exception e)
+                {
+                    Console.Error.WriteLine(e);
+                }
             }
             return;
         }
@@ -142,16 +190,17 @@ namespace MastodonClient
             ClientWebSocket ws = new ClientWebSocket();
             try
             {
-                await ws.ConnectAsync(new Uri(string.Format("ws://{0}/api/v1/streaming/?access_token={1}&stream=public:local", server_url, token)), CancellationToken.None);
+                await ws.ConnectAsync(new Uri(string.Format("ws://{0}/api/v1/streaming/?access_token={1}&stream=public:local", host, token)), CancellationToken.None);
             }
             catch(Exception e)
             {
-                Console.Error.WriteLine("{0} への接続に失敗しました。", server_url);
+                Console.Error.WriteLine("{0} への接続に失敗しました。", host);
                 Console.Error.WriteLine(e);
                 return;
             }
             
             var utf = new UTF8Encoding();
+            streaming = true;
             while(ws.State == WebSocketState.Open)
             {
                 var buffer = new byte[BUFFER_SIZE];
@@ -191,7 +240,42 @@ namespace MastodonClient
                 
             }
 
+            streaming = false;
             Console.WriteLine("Streaming end");
+        }
+
+        public async Task<bool> PostToot(string content, List<Item.Attachment> attachments)
+        {
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(string.Format("https://{0}/api/v1/statuses", host)),
+                Content = new FormUrlEncodedContent(new Dictionary<string, string>{
+                    {"status" , content }
+                })
+            };
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            HttpResponseMessage res;
+            try
+            {
+                res = await client.SendAsync(request);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e);
+                return false;
+            }
+
+            if (!res.IsSuccessStatusCode)
+            {
+                Console.Error.WriteLine("トゥートに失敗しました。");
+                Console.Error.WriteLine(res.Headers);
+                Console.Error.WriteLine(await res.Content.ReadAsStringAsync());
+                return false;
+            }
+
+            return true;
         }
     }
 }
